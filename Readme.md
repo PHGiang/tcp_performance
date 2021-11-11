@@ -5,3 +5,6 @@ make clean
 make 
 sudo make install
 ```
+Timeout reference: 
+
+[1] https://www.catchpoint.com/blog/tcp-rtt

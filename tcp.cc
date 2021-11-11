@@ -76,7 +76,8 @@ TcpAgent::TcpAgent()
 	  first_decrease_(1), fcnt_(0), nrexmit_(0), restart_bugfix_(1), 
           cong_action_(0), ecn_burst_(0), ecn_backoff_(0), ect_(0), 
           use_rtt_(0), qs_requested_(0), qs_approved_(0),
-	  qs_window_(0), qs_cwnd_(0), frto_(0), rto_(0)
+	  qs_window_(0), qs_cwnd_(0), frto_(0)
+	  , t_rto_(0)
 {
 #ifdef TCP_DELAY_BIND_ALL
         // defined since Dec 1999.
@@ -90,6 +91,7 @@ TcpAgent::TcpAgent()
 	bind("seqno_", &curseq_);
 	bind("ack_", &highest_ack_);
 	bind("cwnd_", &cwnd_);
+	bind("rto_", &t_rto_); 
 	bind("ssthresh_", &ssthresh_);
 	bind("maxseq_", &maxseq_);
         bind("ndatapack_", &ndatapack_);
@@ -101,7 +103,6 @@ TcpAgent::TcpAgent()
         bind("necnresponses_", &necnresponses_);
         bind("ncwndcuts_", &ncwndcuts_);
 	bind("ncwndcuts1_", &ncwndcuts1_);
-	bind("rto_", &rto_);
 #endif /* TCP_DELAY_BIND_ALL */
 
 }
@@ -148,7 +149,6 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("exitFastRetrans_");
         delay_bind_init_one("maxrto_");
 	delay_bind_init_one("minrto_");
-	delay_bind_init_one("rto_"); 
         delay_bind_init_one("srtt_init_");
         delay_bind_init_one("rttvar_init_");
         delay_bind_init_one("rtxcur_init_");
@@ -203,6 +203,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("seqno_");
         delay_bind_init_one("ack_");
         delay_bind_init_one("cwnd_");
+		delay_bind_init_one("rto_"); 
         delay_bind_init_one("ssthresh_");
         delay_bind_init_one("maxseq_");
         delay_bind_init_one("ndatapack_");
@@ -315,6 +316,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "seqno_", &curseq_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "ack_", &highest_ack_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "cwnd_", &cwnd_ , tracer)) return TCL_OK;
+		if (delay_bind(varName, localName, "rto_", &t_rto_, tracer)) return TCL_OK; 
         if (delay_bind(varName, localName, "ssthresh_", &ssthresh_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "maxseq_", &maxseq_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "ndatapack_", &ndatapack_ , tracer)) return TCL_OK;
@@ -348,12 +350,12 @@ TcpAgent::traceAll() {
 		 "time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport:"
 		 " %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f"
 		 " ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f"
-		 " rttvar: %-6.3f bkoff: %-d\n", curtime, addr(), port(),
+		 " rttvar: %-6.3f bkoff: %-d rto: %-6.3f\n", curtime, addr(), port(),
 		 daddr(), dport(), int(maxseq_), int(highest_ack_),
 		 int(t_seqno_), double(cwnd_), int(ssthresh_),
 		 int(dupacks_), int(t_rtt_)*tcp_tick_, 
 		 (int(t_srtt_) >> T_SRTT_BITS)*tcp_tick_, 
-		 int(t_rttvar_)*tcp_tick_/4.0, int(t_backoff_)); 
+		 int(t_rttvar_)*tcp_tick_/4.0, int(t_backoff_), double(t_rto_)); 
 	(void)Tcl_Write(channel_, wrk, -1);
 }
 
@@ -375,8 +377,8 @@ TcpAgent::traceVar(TracedVar* v)
 		snprintf(wrk, TCP_WRK_SIZE,
 			 "%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f\n",
 			 curtime, addr(), port(), daddr(), dport(),
-			 v->name(), double(*((TracedDouble*) v))); 
-	else if (v == &rto_)
+			 v->name(), double(*((TracedDouble*) v)));
+	else if (v == &t_rto_)
 		snprintf(wrk, TCP_WRK_SIZE,
 			 "%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f\n",
 			 curtime, addr(), port(), daddr(), dport(),
@@ -531,11 +533,12 @@ void TcpAgent::rtt_init()
 	t_rttvar_ = int(rttvar_init_ / tcp_tick_) << T_RTTVAR_BITS;
 	t_rtxcur_ = rtxcur_init_;
 	t_backoff_ = 1;
+	t_rto_ = 0; 
 }
 
-TracedDouble TcpAgent::rtt_timeout()
+double TcpAgent::rtt_timeout()
 {
-	TracedDouble timeout;
+	double timeout;
 	if (rfc2988_) {
 	// Correction from Tom Kelly to be RFC2988-compliant, by
 	// clamping minrto_ before applying t_backoff_.
@@ -564,7 +567,7 @@ TracedDouble TcpAgent::rtt_timeout()
 			timeout = 2.0 * tcp_tick_;
 	}
 	use_rtt_ = 0;
-	rto_ = timeout; 
+	t_rto_ = timeout; 
 	return (timeout);
 }
 
@@ -878,6 +881,7 @@ int TcpAgent::command(int argc, const char*const* argv)
 			t_srtt_ = other->t_srtt_;
 			t_rttvar_ = other->t_rttvar_;
 			t_backoff_ = other->t_backoff_;
+			t_rto_ = other->t_rto_; 
 			return (TCL_OK);
 		}
 	}
