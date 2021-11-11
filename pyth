@@ -1,0 +1,110 @@
+#!/usr/bin/python3
+
+import os
+import csv 
+import sys, getopt
+import math
+
+# Compute throughput 
+def throughput(): 
+    trace = open('exp1.tr').readlines()
+    start_flag = False
+    total_bits = 0
+    b_value = 0
+    for line in trace: 
+        tru = line.split()
+        event = tru[0]
+        time = float(tru[1])
+        source = tru[2]
+        size = int(tru[5])
+        fid = tru[7]
+        type = tru[4]
+        dest = tru[3]
+        if fid == '1': 
+            if event == '+' and source == '0': 
+                if start_flag == False: 
+                    start_time = time
+                    start_flag = True
+            if event == 'r': 
+                total_bits += 8*size
+                end_time = time
+            if type == 'ack' and dest == '0': 
+                b_value += 1
+
+    duration = end_time - start_time
+    # print(f'totalBits = {total_bits} duration = {duration} start_time = {start_time} end_time = {end_time}')
+    th = total_bits/duration/(1021*1024)
+    # print(f"throughput = {th}")
+    return str(th), b_value
+
+# Compute drop rate (loss rate ???)
+def droprate(): 
+    total = 0
+    drop = 0
+    tlat = 0
+    trace = open('exp1.tr').readlines()
+    for line in trace: 
+        tru = line.split()
+        event = tru[0]
+        fid = tru[7]
+        if fid == '1': 
+            if event == 'd': 
+                drop = drop + 1
+            if event == '+': 
+                total = total + 1
+    pd = (float(drop)/float(total))
+    return pd
+    # print(f"drop rate: {pd}")
+    # return str(pd)
+
+def analysic_throughput(drop_rate, b_value): 
+    rtt_total = 0
+    rtt_cnt = 0
+    rto_total = 0
+    rto_cnt = 0
+    cwnd_total = 0
+    cwnd_cnt = 0
+
+    trace = open('exp2.tr').readlines()
+    for line in trace: 
+        tru = line.split()
+        event = tru[5]
+        value = float(tru[6])
+        if event == 'rto_': 
+            rto_total += value
+            rto_cnt += 1
+        elif event == 'rtt_': 
+            rtt_total += value
+            rtt_cnt += 1
+        elif event == 'cwnd_': 
+            cwnd_total += value
+            cwnd_cnt += 1
+    
+    avg_rtt = rtt_total/rtt_cnt
+    avg_rto = rto_total/rto_cnt
+    avg_cwnd = cwnd_total/cwnd_cnt
+    print(f'{avg_rtt} {avg_rto} {avg_cwnd} {drop_rate}')
+
+    B = 1460
+    cal5 = (1.22*8*B)/(avg_rtt*math.sqrt(drop_rate))/(1000*1000)
+    cal6_p2 = 1/(avg_rtt*math.sqrt(2*b_value/3) + avg_rto * 1.3 * math.sqrt(3*b_value*drop_rate/8)*drop_rate*(1 + 32*drop_rate*drop_rate))
+    cal6_p1 = avg_cwnd/avg_rtt
+    cal6 = min(cal6_p1, cal6_p2)
+
+    return cal5, cal6
+
+t, b = throughput()
+d = droprate()
+cal5, cal6 = analysic_throughput(d, b)
+
+print(f' t = {t} d = {d} cal5 = {cal5} cal6 = {cal6}' )
+file_name='./result.csv'
+f = open(file_name, 'w')
+writer = csv.writer(f)
+data = []
+data.append(t)
+data.append(d)
+writer.writerow(data)
+f.close()
+# os.system("rm *.tr")
+

@@ -1,0 +1,50 @@
+#!/bin/bash
+# array=( $(seq 1 0.5 13 ) )
+# echo ${array[@]}
+# echo "packetSize = 1460"
+
+# echo "-------------Tahoe----------------"
+# echo "CBR      Throughput                 Packet Drop Rate"
+
+# for i in ${array[@]}
+# do
+# ns exp1.tcl Tahoe $i 1460
+# printf $i 
+# ./pyth
+# done
+
+# echo "==========================================================================================="
+# echo "------------------Reno-------------------"
+# echo "CBR      Throughput                  Packet Drop Rate"
+
+# for i in ${array[@]}
+# do
+# ns exp1.tcl Reno $i 1460
+# printf $i 
+# ./pyth
+# done
+
+echo "packetSize = 512"
+
+echo "-------------Tahoe----------------"
+echo "CBR      Throughput                 Packet Drop Rate"
+
+array=( $(seq 8 0.5 18 ) )
+for i in ${array[@]}
+do
+ns exp1.tcl Tahoe $i 512
+printf $i 
+./pyth
+done
+
+# echo "==========================================================================================="
+# echo "------------------Reno-------------------"
+# echo "CBR      Throughput                  Packet Drop Rate"
+
+# for i in ${array[@]}
+# do
+# ns exp1.tcl Reno $i 512
+# printf $i 
+# ./pyth
+# done
+
