@@ -76,7 +76,7 @@ TcpAgent::TcpAgent()
 	  first_decrease_(1), fcnt_(0), nrexmit_(0), restart_bugfix_(1), 
           cong_action_(0), ecn_burst_(0), ecn_backoff_(0), ect_(0), 
           use_rtt_(0), qs_requested_(0), qs_approved_(0),
-	  qs_window_(0), qs_cwnd_(0), frto_(0)
+	  qs_window_(0), qs_cwnd_(0), frto_(0), rto_(0)
 {
 #ifdef TCP_DELAY_BIND_ALL
         // defined since Dec 1999.
@@ -101,6 +101,7 @@ TcpAgent::TcpAgent()
         bind("necnresponses_", &necnresponses_);
         bind("ncwndcuts_", &ncwndcuts_);
 	bind("ncwndcuts1_", &ncwndcuts1_);
+	bind("rto_", &rto_);
 #endif /* TCP_DELAY_BIND_ALL */
 
 }
@@ -147,6 +148,7 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("exitFastRetrans_");
         delay_bind_init_one("maxrto_");
 	delay_bind_init_one("minrto_");
+	delay_bind_init_one("rto_"); 
         delay_bind_init_one("srtt_init_");
         delay_bind_init_one("rttvar_init_");
         delay_bind_init_one("rtxcur_init_");
@@ -374,6 +376,11 @@ TcpAgent::traceVar(TracedVar* v)
 			 "%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f\n",
 			 curtime, addr(), port(), daddr(), dport(),
 			 v->name(), double(*((TracedDouble*) v))); 
+	else if (v == &rto_)
+		snprintf(wrk, TCP_WRK_SIZE,
+			 "%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f\n",
+			 curtime, addr(), port(), daddr(), dport(),
+			 v->name(), double(*((TracedDouble*) v))); 
  	else if (v == &t_rtt_)
 		snprintf(wrk, TCP_WRK_SIZE,
 			 "%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f\n",
@@ -526,9 +533,9 @@ void TcpAgent::rtt_init()
 	t_backoff_ = 1;
 }
 
-double TcpAgent::rtt_timeout()
+TracedDouble TcpAgent::rtt_timeout()
 {
-	double timeout;
+	TracedDouble timeout;
 	if (rfc2988_) {
 	// Correction from Tom Kelly to be RFC2988-compliant, by
 	// clamping minrto_ before applying t_backoff_.
@@ -557,6 +564,7 @@ double TcpAgent::rtt_timeout()
 			timeout = 2.0 * tcp_tick_;
 	}
 	use_rtt_ = 0;
+	rto_ = timeout; 
 	return (timeout);
 }
 

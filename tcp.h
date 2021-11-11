@@ -262,6 +262,7 @@ protected:
 	double lastreset_;	/* W.N. Last time connection was reset - for */
 				/* detecting pkts from previous incarnations */
 	int closed_;            /* whether this connection has closed */
+	TracedDouble rto_; 
 	/* End of general dynamic state. */
 
 	/*
@@ -283,7 +284,7 @@ protected:
 	double t_rtxcur_;	/* current retransmit value */
 	double rtxcur_init_;    /* initial value for t_rtxcur_ */
 	virtual void rtt_init();
-	virtual double rtt_timeout();	/* provide RTO based on RTT estimates */
+	virtual TracedDouble rtt_timeout();	/* provide RTO based on RTT estimates */
 	virtual void rtt_update(double tao);	/* update RTT estimate */
 	virtual void rtt_backoff();		/* double multiplier */
 	/* End of state for the round-trip-time estimate. */

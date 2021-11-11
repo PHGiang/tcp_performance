@@ -977,6 +977,7 @@ Agent/TCP set partial_ack_ false ;	# Variable added on 2002/12/28.
 Agent/TCP set dupacks_ 0
 Agent/TCP set ack_ 0
 Agent/TCP set cwnd_ 0
+Agent/TCP set rto_ 0
 Agent/TCP set awnd_ 0
 Agent/TCP set ssthresh_ 0
 Agent/TCP set rtt_ 0
