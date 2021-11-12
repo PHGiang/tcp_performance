@@ -59,4 +59,4 @@ read_data()
 plot_fig()
 
 #Deleting the trace file
-os.system(f"rm {path}/*.csv")
+os.system(f"rm {path}/result*.csv")

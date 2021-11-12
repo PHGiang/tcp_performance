@@ -90,7 +90,7 @@ proc exp1 {agent cbr_rate packet_size} {
     $cbr set type_ CBR
     $cbr set packetSize_ $packet_size
     $cbr set rate_ ${cbr_rate}mb
-    # $cbr set random_ false
+    $cbr set random_ true
 
     set udpsink [new Agent/Null]
     $ns attach-agent $n5 $udpsink

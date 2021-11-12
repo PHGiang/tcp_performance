@@ -1,5 +1,5 @@
 #!/bin/bash
-replications=1
+replications=10
 
 array=( $(seq 1 0.5 13 ) )
 name_arr=("Tahoe" "Reno")
