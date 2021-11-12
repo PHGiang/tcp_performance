@@ -1,0 +1,62 @@
+#!/usr/bin/python3
+
+import csv
+import os
+import pandas as pd
+import matplotlib.pyplot as plt 
+import sys
+import glob
+
+name = sys.argv[1] # Tahoe, Reno 
+no_files = int(sys.argv[2])
+B = sys.argv[3] #1460, 512
+
+path = f'./output/{name}'
+all_files = glob.glob(path + "/result*.csv")
+out_file_avg = f'{path}/avg_result.csv'
+out_file_std = f'{path}/std_result.csv'
+
+def read_data():     
+    f = open(out_file_avg, 'w')
+    f_std = open(out_file_std, 'w')
+    writer = csv.writer(f)
+    writer_std = csv.writer(f_std)
+
+    writer.writerow(['thput','droprate','cal5','cal6'])
+    writer_std.writerow(['thput','droprate','cal5','cal6'])
+    for i in range(no_files):
+        file_name = f'./output/{name}/result{i}.csv'
+        df = pd.read_csv(file_name, index_col=None, header=0)
+        avg = df.mean().to_list()
+        std_derivation = df.std().to_list()
+        writer.writerow(avg)
+        writer_std.writerow(std_derivation)
+        # print(std_derivation)
+    f.close()
+    f_std.close()
+    
+
+def plot_fig(): 
+    data = pd.read_csv(out_file_avg)
+
+    drop_rate = data.droprate*100
+    cal_6 = data.cal6
+    cal_5 = data.cal5 
+    th = data.thput
+    
+
+    fig = plt.figure()
+    plt.style.use('grayscale')
+    plt.plot(drop_rate, th, '-x', drop_rate, cal_5, '-^', drop_rate, cal_6, '-d', markerfacecolor='None', markeredgewidth=1)
+    # plt.imshow(fig, cmap='Greys', interpolation='nearest')
+    plt.legend(['simulated', 'formular (5)', 'formula (6)'])
+    plt.xlabel('Packet drop rate (%)')
+    plt.ylabel('Throughput (Mbps)')
+    plt.savefig(f'{path}/{name}{B}.eps', format='eps', transparent=True)
+    # plt.show()
+
+read_data()
+plot_fig()
+
+#Deleting the trace file
+# os.system(f"rm {path}/result*.csv")
