@@ -13,23 +13,33 @@ B = sys.argv[3] #1460, 512
 
 path = f'./output/{name}'
 all_files = glob.glob(path + "/result*.csv")
-out_file = f'{path}/total_result.csv'
+out_file_avg = f'{path}/avg_result.csv'
+out_file_std = f'{path}/std_result.csv'
 
 def read_data():     
-    f = open(out_file, 'w')
+    f = open(out_file_avg, 'w')
+    f_std = open(out_file_std, 'w')
     writer = csv.writer(f)
+    writer_std = csv.writer(f_std)
+
     writer.writerow(['thput','droprate','cal5','cal6'])
+    writer_std.writerow(['thput','droprate','cal5','cal6'])
     for i in range(no_files):
         file_name = f'./output/{name}/result{i}.csv'
         df = pd.read_csv(file_name, index_col=None, header=0)
         avg = df.mean().to_list()
+        std_derivation = df.std().to_list()
         writer.writerow(avg)
+        writer_std.writerow(std_derivation)
+        # print(std_derivation)
+    f.close()
+    f_std.close()
     
 
 def plot_fig(): 
-    data = pd.read_csv(out_file)
+    data = pd.read_csv(out_file_avg)
 
-    drop_rate = data.droprate
+    drop_rate = data.droprate*100
     cal_6 = data.cal6
     cal_5 = data.cal5 
     th = data.thput
@@ -43,7 +53,7 @@ def plot_fig():
     plt.xlabel('Packet drop rate (%)')
     plt.ylabel('Throughput (Mbps)')
     plt.savefig(f'{path}/{name}{B}.eps', format='eps', transparent=True)
-    plt.show()
+    # plt.show()
 
 read_data()
 plot_fig()
