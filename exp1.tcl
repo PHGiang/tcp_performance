@@ -1,7 +1,7 @@
 proc exp1 {agent cbr_rate packet_size} {
     # global ns nf f0 f1
     global ns f0 f1
-    set sim_time 50
+    set sim_time 250
     
     # Make a NS simulator 
     set ns [new Simulator]
@@ -46,6 +46,7 @@ proc exp1 {agent cbr_rate packet_size} {
     $ns duplex-link $n3 $n5 100Mb 10ms DropTail
 
     $ns queue-limit $n2 $n3 100
+    $ns queue-limit $n3 $n2 100
 
 
 
@@ -100,8 +101,6 @@ proc exp1 {agent cbr_rate packet_size} {
     $ns color 1 Blue 
     $ns color 2 Red
     
-
-
     $ns at 0.0 "$cbr start"
     $ns at 0.0 "$ftp start"
 
