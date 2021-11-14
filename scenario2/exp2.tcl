@@ -1,7 +1,8 @@
-proc exp1 {agent cbr_rate packet_size} {
+proc exp1 {agent interarrival_time packet_size} {
     # global ns nf f0 f1
     global ns f0 f1
-    set sim_time 10
+    set sim_time 250
+    set start_time 0
     
     # Make a NS simulator 
     set ns [new Simulator]
@@ -18,7 +19,7 @@ proc exp1 {agent cbr_rate packet_size} {
 
     # Define finish procedure
     proc finish {} {
-        # global ns nf f0
+        # global ns nf f0 f1
         global ns f0 f1
         $ns flush-trace
         # close $nf 
@@ -85,12 +86,11 @@ proc exp1 {agent cbr_rate packet_size} {
 
     $udp set fid_ 2
 
-    set cbr [new Application/Traffic/Exponential]
-    $cbr attach-agent $udp
-    $cbr set type_ Exponential
-    $cbr set packetSize_ $packet_size
-    $cbr set rate_ ${cbr_rate}mb
-    # $cbr set random_ false
+    set tel [new Application/Telnet]
+    $tel attach-agent $udp
+    $tel set packetSize_ $packet_size
+    $tel set interval_ ${interarrival_time}
+    $tel set random_ true
 
     set udpsink [new Agent/Null]
     $ns attach-agent $n5 $udpsink
@@ -101,8 +101,8 @@ proc exp1 {agent cbr_rate packet_size} {
     $ns color 1 Blue 
     $ns color 2 Red
     
-    $ns at 0.0 "$cbr start"
-    $ns at 0.0 "$ftp start"
+    $ns at $start_time "$tel start"
+    $ns at $start_time "$ftp start"
 
     # set lossModel [new ErrorModel]
     # $lossModel set rate_ 0.01
@@ -113,7 +113,7 @@ proc exp1 {agent cbr_rate packet_size} {
     # $lossyLink install-error $lossModel
 
     $ns at $sim_time "$ftp stop"
-    $ns at $sim_time "$cbr stop"
+    $ns at $sim_time "$tel stop"
     
     $ns at $sim_time "finish"
 

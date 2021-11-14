@@ -13,8 +13,8 @@ B = sys.argv[3] #1460, 512
 
 path = f'./output/{name}'
 all_files = glob.glob(path + "/result*.csv")
-out_file_avg = f'{path}/avg_result.csv'
-out_file_std = f'{path}/std_result.csv'
+out_file_avg = f'{path}/avg_result{B}.csv'
+out_file_std = f'{path}/std_result{B}.csv'
 
 def read_data():     
     f = open(out_file_avg, 'w')
@@ -49,7 +49,7 @@ def plot_fig():
     plt.style.use('grayscale')
     plt.plot(drop_rate, th, '-x', drop_rate, cal_5, '-^', drop_rate, cal_6, '-d', markerfacecolor='None', markeredgewidth=1)
     # plt.imshow(fig, cmap='Greys', interpolation='nearest')
-    plt.legend(['simulated', 'formular (5)', 'formula (6)'])
+    plt.legend(['simulated', 'formula (5)', 'formula (6)'])
     plt.xlabel('Packet drop rate (%)')
     plt.ylabel('Throughput (Mbps)')
     plt.savefig(f'{path}/{name}{B}.eps', format='eps', transparent=True)
@@ -59,4 +59,4 @@ read_data()
 plot_fig()
 
 #Deleting the trace file
-# os.system(f"rm {path}/result*.csv")
+os.system(f"rm {path}/result*.csv")

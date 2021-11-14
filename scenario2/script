@@ -1,7 +1,7 @@
 #!/bin/bash
-replications=4
+replications=1
 
-array=( $(seq 1 10 100 ) )
+array=( $(seq 0.0005 0.0001 0.002 ) )
 name_arr=("Tahoe" "Reno")
 B=1460
 
@@ -28,28 +28,29 @@ for name in ${name_arr[@]}; do
     ./plotfig $name $len $B
 done 
 
-# array=( $(seq 8 0.5 22 ) )
-# B=512
+array=( $(seq 0.00001 0.00005 0.001 ) )
+B=512
 
 
-# for name in ${name_arr[@]}; do 
-#     echo $name
-#     echo $B
-#     idx=0
-#     for i in ${array[@]}; do
-#         fileName="./output/"
-#         fileName+="$name"
-#         fileName+="/result"
-#         fileName+="$idx"
-#         fileName+=".csv"
-#         ((idx++))
-#         echo "thput,droprate,cal5,cal6" > $fileName
-#         for j in $(seq 1 $replications); do
-#         # printf $fileNamer    
-#             ns exp1.tcl $name $i $B
-#             printf $i
-#             ./pyth $fileName $B
-#         done
-#     done
-#     ./plotfig $name $len $B
-# done 
+len=${#array[@]}
+for name in ${name_arr[@]}; do 
+    echo $name
+    echo $B
+    idx=0
+    for i in ${array[@]}; do
+        fileName="./output/"
+        fileName+="$name"
+        fileName+="/result"
+        fileName+="$idx"
+        fileName+=".csv"
+        ((idx++))
+        echo "thput,droprate,cal5,cal6" > $fileName
+        for j in $(seq 1 $replications); do
+        # printf $fileNamer    
+            ns exp2.tcl $name $i $B
+            printf $i
+            ./pyth $fileName $B
+        done
+    done
+    ./plotfig $name $len $B
+done 
