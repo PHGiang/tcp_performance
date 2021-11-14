@@ -1,4 +1,4 @@
-proc exp1 {agent no_sources packet_size} {
+proc exp1 {agent no_sources packet_size m_rtt} {
     # global ns nf f0 f1
     global ns f0 f1
     set sim_time 250
@@ -55,6 +55,7 @@ proc exp1 {agent no_sources packet_size} {
             set tcp($i) [new Agent/TCP/$agent]
         }
         $ns attach-agent $s($i) $tcp($i)
+        $tcp($i) set rtt_ $m_rtt
         $tcp($i) set tcpTick_ 0.001
         $tcp($i) set window_ 100
         $tcp($i) set fid_ $i
@@ -86,4 +87,4 @@ proc exp1 {agent no_sources packet_size} {
     $ns run
 }
 
-exp1 [lindex $argv 0] [lindex $argv 1] [lindex $argv 2]
+exp1 [lindex $argv 0] [lindex $argv 1] [lindex $argv 2] [lindex $argv 3]

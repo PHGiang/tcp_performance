@@ -10,8 +10,9 @@ import glob
 name = sys.argv[1] # Tahoe, Reno 
 no_files = int(sys.argv[2])
 B = sys.argv[3] #1460, 512
+idx_rtt=sys.argv[4]
 
-path = f'./output/{name}'
+path = f'./output/{name}/rtt{idx_rtt}'
 all_files = glob.glob(path + "/result*.csv")
 out_file_avg = f'{path}/avg_result{B}.csv'
 out_file_std = f'{path}/std_result{B}.csv'
