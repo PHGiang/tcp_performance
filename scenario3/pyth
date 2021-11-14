@@ -22,17 +22,19 @@ def throughput(no_sources):
         source = tru[2]
         size = int(tru[5])
         type = tru[4]
-        if start_flag == False and event == '+': 
-            start_flag = True 
-            start_time = time     
+  
         if source == '0':
+            if start_flag == False and event == '+': 
+                start_flag = True 
+                start_time = time   
             if event == '+': 
                 total_pkts += 1
+                if type == 'ack': 
+                    b_value += 1
             elif event == '-':
-                total_bits += 8*size
-            if type == 'ack': 
-                b_value += 1
-        end_time = time
+                total_bits += 8*size 
+            else:
+                end_time = time
 
     duration = end_time - start_time
     b_value = total_pkts/b_value # no packets that are acknowledged by an ack
@@ -127,5 +129,5 @@ data.append(cal5)
 data.append(cal6)
 writer.writerow(data)
 f.close()
-os.system("rm *.tr")
+# os.system("rm *.tr")
 

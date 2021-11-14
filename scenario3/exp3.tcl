@@ -1,7 +1,7 @@
 proc exp1 {agent no_sources packet_size} {
     # global ns nf f0 f1
     global ns f0 f1
-    set sim_time 50
+    set sim_time 250
     set start_time 0
     
     # Make a NS simulator 
