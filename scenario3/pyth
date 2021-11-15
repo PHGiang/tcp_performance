@@ -129,5 +129,5 @@ data.append(cal5)
 data.append(cal6)
 writer.writerow(data)
 f.close()
-# os.system("rm *.tr")
+os.system("rm *.tr")
 

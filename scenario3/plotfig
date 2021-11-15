@@ -26,7 +26,7 @@ def read_data():
     writer.writerow(['thput','droprate','cal5','cal6'])
     writer_std.writerow(['thput','droprate','cal5','cal6'])
     for i in range(no_files):
-        file_name = f'./output/{name}/result{i}.csv'
+        file_name = f'{path}/result{i}.csv'
         df = pd.read_csv(file_name, index_col=None, header=0)
         avg = df.mean().to_list()
         std_derivation = df.std().to_list()
